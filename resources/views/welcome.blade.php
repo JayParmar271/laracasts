@@ -21,6 +21,7 @@
         </style>
     </head>
     <body>
-        <h1>You are visitor number #{{ $visits }}.</h1>
+        <h1>Some video</h1>
+        <p>This video has been downloaded {{ $downloads ?? 'no'}} times.</p>
     </body>
 </html>
