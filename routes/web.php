@@ -14,14 +14,22 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('videos/{id}', function ($id) {
-    $downloads = Redis::get("videos.{$id}.downloads");
+Route::get('articles/trending', function () {
+    $trending = Redis::zrevrange('trending_articles', 0, 2);
 
-    return view('welcome')->withDownloads($downloads);
+    $trending = App\Models\Article::hydrate(
+        array_map('json_decode', $trending)
+    );
+
+    return $trending;
 });
 
-Route::get('videos/{id}/downloads', function ($id) {
-    Redis::incr("videos.{$id}.downloads");
 
-    return back();
+Route::get('articles/{article}', function (App\Models\Article $article) {
+    Redis::zincrby('trending_articles', 1, $article);
+
+    // Set cron for remove extra items // Set into console/Kernel.php
+    // Redis::zremrangebyrank('trending_articles', 0, -4);
+
+    return $article;
 });
