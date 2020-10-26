@@ -14,22 +14,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('articles/trending', function () {
-    $trending = Redis::zrevrange('trending_articles', 0, 2);
+Route::get('/', function () {
+    $user2Stats = [
+        'favorites' => 10,
+        'watchLaters' => 20,
+        'completions' => 25,
+    ];
 
-    $trending = App\Models\Article::hydrate(
-        array_map('json_decode', $trending)
-    );
+    Redis::hmset('user.2.stats', $user2Stats);
 
-    return $trending;
+    return Redis::hgetall('user.2.stats');
 });
 
+Route::get('users/{id}/stats', function ($id) {
+    return Redis::hgetall("user.{$id}.stats");
+});
 
-Route::get('articles/{article}', function (App\Models\Article $article) {
-    Redis::zincrby('trending_articles', 1, $article);
+Route::get('favorite-video', function () {
+    Redis::hincrby('user.1.stats', 'favorites', 1);
 
-    // Set cron for remove extra items // Set into console/Kernel.php
-    // Redis::zremrangebyrank('trending_articles', 0, -4);
-
-    return $article;
+    return redirect('/');
 });
