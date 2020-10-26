@@ -14,14 +14,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    if ($value = Redis::get('articles.all')) {
+function remember($key, $minutes, $callback)
+{
+    if ($value = Redis::get($key)) {
         return json_decode($value);
     }
 
-    $articles = App\Models\Article::all();
+    $value = $callback();
 
-    Redis::set('articles.all', $articles);
+    Redis::setex($key, $minutes, $value);
 
-    return $articles;
+    return $value;
+}
+
+Route::get('/', function () {
+    return remember('articles.all', 60*60, function () {
+        return App\Models\Article::all();
+    });
 });
