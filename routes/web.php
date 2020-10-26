@@ -15,23 +15,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    $user2Stats = [
-        'favorites' => 10,
-        'watchLaters' => 20,
-        'completions' => 25,
-    ];
+    if ($value = Redis::get('articles.all')) {
+        return json_decode($value);
+    }
 
-    Redis::hmset('user.2.stats', $user2Stats);
+    $articles = App\Models\Article::all();
 
-    return Redis::hgetall('user.2.stats');
-});
+    Redis::set('articles.all', $articles);
 
-Route::get('users/{id}/stats', function ($id) {
-    return Redis::hgetall("user.{$id}.stats");
-});
-
-Route::get('favorite-video', function () {
-    Redis::hincrby('user.1.stats', 'favorites', 1);
-
-    return redirect('/');
+    return $articles;
 });
